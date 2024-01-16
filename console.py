@@ -114,17 +114,53 @@ class HBNBCommand(cmd.Cmd):
         pass
 
     def do_create(self, args):
-        """ Create an object of any class"""
-        if not args:
-            print("** class name missing **")
-            return
-        elif args not in HBNBCommand.classes:
-            print("** class doesn't exist **")
-            return
-        new_instance = HBNBCommand.classes[args]()
-        storage.save()
-        print(new_instance.id)
-        storage.save()
+    """ Create an object of any class with given parameters"""
+    if not args:
+        print("** class name missing **")
+        return
+
+    # Extract class name
+    class_name, *params = args.split()
+
+    if class_name not in HBNBCommand.classes:
+        print("** class doesn't exist **")
+        return
+
+    # Parse parameters and their values
+    parsed_params = {}
+    for param in params:
+        key, _, value = param.partition('=')
+        if not key or not value:
+            print(f"Invalid parameter: {param}")
+            continue
+
+        # Process String values
+        if value.startswith('"') and value.endswith('"'):
+            value = value[1:-1].replace('_', ' ').replace('\\"', '"')
+
+        # Process Float values
+        elif '.' in value:
+            try:
+                value = float(value)
+            except ValueError:
+                print(f"Invalid float value: {value}")
+                continue
+
+        # Process Integer values
+        else:
+            try:
+                value = int(value)
+            except ValueError:
+                print(f"Invalid integer value: {value}")
+                continue
+
+        parsed_params[key] = value
+
+    # Create an instance of the specified class with the parsed parameters
+    new_instance = HBNBCommand.classes[class_name](**parsed_params)
+    storage.save()
+    print(new_instance.id)
+    storage.save()
 
     def help_create(self):
         """ Help information for the create method """
