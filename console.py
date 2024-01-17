@@ -113,54 +113,51 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
-    def do_create(self, args):
-    """ Create an object of any class with given parameters"""
-    if not args:
-        print("** class name missing **")
-        return
+        def do_create(self, args):
+        """
+        Create an object of any class
+        Command syntax: create <Class name> <param 1> <param 2> <param 3>...
+        Param syntax: <key name>=<value>
+        Value syntax:"""
 
-    # Extract class name
-    class_name, *params = args.split()
+        
+        _args = args.split()
 
-    if class_name not in HBNBCommand.classes:
-        print("** class doesn't exist **")
-        return
+        if not args:
+            print("** class name missing **")
+            return
+        # If param not in classes e.g create Person
+        elif _args[0] not in HBNBCommand.classes:
+            print("** class doesn't exist **")
+            return
 
-    # Parse parameters and their values
-    parsed_params = {}
-    for param in params:
-        key, _, value = param.partition('=')
-        if not key or not value:
-            print(f"Invalid parameter: {param}")
-            continue
+        new_instance = HBNBCommand.classes[_args[0]]()
 
-        # Process String values
-        if value.startswith('"') and value.endswith('"'):
-            value = value[1:-1].replace('_', ' ').replace('\\"', '"')
+        # Looping through the rest of passed parameters
+        for parameter in _args[1:]:
+            if '=' in parameter:
+                key, value = parameter.split('=')
 
-        # Process Float values
-        elif '.' in value:
-            try:
-                value = float(value)
-            except ValueError:
-                print(f"Invalid float value: {value}")
-                continue
+                # Check if value is enclosed in double quotes
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1]  # Remove quotes
 
-        # Process Integer values
-        else:
-            try:
-                value = int(value)
-            except ValueError:
-                print(f"Invalid integer value: {value}")
-                continue
+                    # Replace underscores with spaces for string values
+                    value = value.replace('_', ' ')
 
-        parsed_params[key] = value
+                    # Check if value is numeric or float
+                    if HBNBCommand.check_if_float(value):
+                        if '.' in value:
+                            value = float(value)
+                        else:
+                            value = int(value)
 
-    # Create an instance of the specified class with the parsed parameters
-    new_instance = HBNBCommand.classes[class_name](**parsed_params)
-    storage.save()
-    print(new_instance.id)
-    storage.save()
+                new_instance.__dict__[key] = value
+
+        storage.save()
+        print(new_instance.id)
+        storage.save()
+        new_instance.save()
 
     def help_create(self):
         """ Help information for the create method """
