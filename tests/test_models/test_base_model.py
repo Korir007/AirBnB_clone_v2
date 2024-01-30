@@ -1,67 +1,114 @@
 #!/usr/bin/python3
-""" """
-from models.base_model import BaseModel
+""" Module used to test  the base model """
+
+import os
+import json
 import unittest
 import datetime
-import json
-import os
+from models.base_model import BaseModel
+from uuid import UUID
 
 
-class TestBaseModel(unittest.TestCase):
-    """Test cases for BaseModel class"""
+class test_basemodel(unittest.TestCase):
+    """ Test class for base model """
 
+    def __init__(self, *args, **kwargs):
+        """ Constructor for test_basemodel class """
+        super().__init__(*args, **kwargs)
+        self.name = 'BaseModel'
+        self.value = BaseModel
+
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "FileStorage")
     def setUp(self):
-        """Set up for each test"""
+        """ """
         pass
 
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "FileStorage")
     def tearDown(self):
-        """Clean up after each test"""
         try:
             os.remove('file.json')
-        except FileNotFoundError:
+        except Exception:
             pass
 
-    def test_instantiation(self):
-        """Test instantiation of BaseModel"""
-        instance = BaseModel()
-        self.assertEqual(type(instance), BaseModel)
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "FileStorage")
+    def test_default(self):
+        """ """
+        i = self.value()
+        self.assertEqual(type(i), self.value)
 
-    def test_kwargs_initialization(self):
-        """Test instantiation of BaseModel with kwargs"""
-        instance = BaseModel()
-        copy = instance.to_dict()
-        new_instance = BaseModel(**copy)
-        self.assertNotEqual(new_instance, instance)
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "FileStorage")
+    def test_kwargs(self):
+        """ """
+        i = self.value()
+        copy = i.to_dict()
+        new = BaseModel(**copy)
+        self.assertFalse(new is i)
 
-    def test_save_method(self):
-        """Test save method of BaseModel"""
-        instance = BaseModel()
-        instance.save()
-        key = 'BaseModel.' + instance.id
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "FileStorage")
+    def test_kwargs_int(self):
+        """ """
+        i = self.value()
+        copy = i.to_dict()
+        copy.update({1: 2})
+        with self.assertRaises(TypeError):
+            new = BaseModel(**copy)
+
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "FileStorage")
+    def test_save(self):
+        """ Testing save """
+        i = self.value()
+        i.save()
+        key = self.name + "." + i.id
         with open('file.json', 'r') as f:
-            data = json.load(f)
-            self.assertEqual(data[key], instance.to_dict())
+            j = json.load(f)
+            self.assertEqual(j[key], i.to_dict())
 
-    def test_string_representation(self):
-        """Test string representation of BaseModel"""
-        instance = BaseModel()
-        expected_str = '[BaseModel] ({}) {}'.format(instance.id,
-                                                     instance.__dict__)
-        self.assertEqual(str(instance), expected_str)
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "FileStorage")
+    def test_str(self):
+        """ """
+        i = self.value()
+        self.assertEqual(str(i), '[{}] ({}) {}'.format(self.name, i.id,
+                         i.__dict__))
 
-    def test_to_dict_method(self):
-        """Test to_dict method of BaseModel"""
-        instance = BaseModel()
-        dictionary = instance.to_dict()
-        self.assertEqual(dictionary, instance.__dict__)
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "FileStorage")
+    def test_todict(self):
+        """ """
+        i = self.value()
+        n = i.to_dict()
+        self.assertEqual(i.to_dict(), n)
 
-    def test_updated_at_after_save(self):
-        """Test updated_at attribute after calling save method"""
-        instance = BaseModel()
-        initial_updated_at = instance.updated_at
-        instance.save()
-        self.assertNotEqual(initial_updated_at, instance.updated_at)
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "FileStorage")
+    def test_kwargs_none(self):
+        """ """
+        n = {None: None}
+        with self.assertRaises(TypeError):
+            new = self.value(**n)
+
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "FileStorage")
+    def test_kwargs_one(self):
+        """ """
+        n = {'Name': 'test'}
+        new = self.value(**n)
+        self.assertRaises(KeyError)
+
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "FileStorage")
+    def test_id(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.id), str)
+
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "FileStorage")
+    def test_created_at(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.created_at), datetime.datetime)
+
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "FileStorage")
+    def test_updated_at(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.updated_at), datetime.datetime)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
